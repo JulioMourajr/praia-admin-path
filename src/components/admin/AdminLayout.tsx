@@ -25,10 +25,10 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
       current: location.pathname === "/admin",
     },
     {
-      name: "Praias",
-      href: "/admin/praias",
-      icon: Waves,
-      current: location.pathname === "/admin/praias",
+      name: "Mapa de Praias",
+      href: "/admin/mapa",
+      icon: MapPin,
+      current: location.pathname === "/admin/mapa",
     },
   ];
 

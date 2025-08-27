@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { PraiasManagement } from "@/components/admin/PraiasManagement";
+import { MapView } from "@/components/admin/MapView";
 import { AdminHome } from "@/components/admin/AdminHome";
 
 const AdminDashboard = () => {
@@ -8,7 +8,7 @@ const AdminDashboard = () => {
     <AdminLayout>
       <Routes>
         <Route path="/" element={<AdminHome />} />
-        <Route path="/praias" element={<PraiasManagement />} />
+        <Route path="/mapa" element={<MapView />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </AdminLayout>

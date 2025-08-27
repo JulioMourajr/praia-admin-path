@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Waves, Settings, BarChart3 } from "lucide-react";
+import { Waves, Settings, BarChart3, MapPin } from "lucide-react";
 
 const Index = () => {
   return (
@@ -18,8 +18,8 @@ const Index = () => {
               Sistema de Balneabilidade
             </h1>
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              Monitore e gerencie a qualidade das águas das praias com nosso sistema 
-              completo de balneabilidade. Dados atualizados e interface moderna.
+              Cadastre e monitore praias diretamente no mapa interativo. 
+              Sistema completo de geolocalização para gestão de balneabilidade.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -47,21 +47,21 @@ const Index = () => {
           <div className="grid md:grid-cols-3 gap-8 mt-16">
             <div className="p-6 bg-card rounded-xl shadow-card border border-border">
               <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-4">
-                <Waves className="h-8 w-8 text-primary" />
+                <MapPin className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Monitoramento</h3>
+              <h3 className="text-xl font-semibold mb-3">Mapa Interativo</h3>
               <p className="text-muted-foreground">
-                Acompanhe em tempo real o status de balneabilidade de todas as praias cadastradas.
+                Cadastre praias clicando diretamente no mapa. Visualize todas as praias com marcadores coloridos.
               </p>
             </div>
 
             <div className="p-6 bg-card rounded-xl shadow-card border border-border">
               <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-4">
-                <Settings className="h-8 w-8 text-primary" />
+                <Waves className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Gestão Completa</h3>
+              <h3 className="text-xl font-semibold mb-3">Geolocalização</h3>
               <p className="text-muted-foreground">
-                Adicione, edite e remova praias do sistema com interface intuitiva e moderna.
+                Coordenadas precisas capturadas automaticamente ao clicar no mapa. Geocodificação reversa incluída.
               </p>
             </div>
 
@@ -69,9 +69,9 @@ const Index = () => {
               <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-4">
                 <BarChart3 className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Relatórios</h3>
+              <h3 className="text-xl font-semibold mb-3">Status Visual</h3>
               <p className="text-muted-foreground">
-                Gere relatórios detalhados sobre a qualidade das águas e tendências.
+                Praias próprias em verde, impróprias em vermelho. Popups informativos em cada marcador.
               </p>
             </div>
           </div>

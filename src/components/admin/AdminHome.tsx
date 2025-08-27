@@ -68,18 +68,19 @@ export const AdminHome = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link to="/admin/praias">
+            <Link to="/admin/mapa">
               <Button className="w-full h-20 flex flex-col gap-2 bg-gradient-ocean hover:opacity-90 transition-all duration-300">
-                <Waves className="h-6 w-6" />
-                <span>Gerenciar Praias</span>
+                <MapPin className="h-6 w-6" />
+                <span>Abrir Mapa</span>
               </Button>
             </Link>
             <Button 
               variant="outline" 
               className="w-full h-20 flex flex-col gap-2 border-primary/20 hover:bg-accent/50 transition-all duration-300"
+              onClick={() => window.location.href = '/admin/mapa'}
             >
-              <MapPin className="h-6 w-6" />
-              <span>Adicionar Nova Praia</span>
+              <Waves className="h-6 w-6" />
+              <span>Cadastrar Praia</span>
             </Button>
           </div>
         </CardContent>
