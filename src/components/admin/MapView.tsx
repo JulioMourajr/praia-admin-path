@@ -1,6 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import 'ol/ol.css';
+import Map from 'ol/Map';
+import View from 'ol/View';
+import TileLayer from 'ol/layer/Tile';
+import VectorLayer from 'ol/layer/Vector';
+import VectorSource from 'ol/source/Vector';
+import OSM from 'ol/source/OSM';
+import Feature from 'ol/Feature';
+import Point from 'ol/geom/Point';
+import { Style, Fill, Stroke, Circle } from 'ol/style';
+import { fromLonLat, toLonLat } from 'ol/proj';
 import { Praia } from '@/types/praia';
 import { PraiaService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
@@ -8,18 +17,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Settings, X } from 'lucide-react';
-
-interface MapboxToken {
-  token: string;
-}
+import { MapPin, X } from 'lucide-react';
 
 export const MapView = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+  const mapRef = useRef<Map | null>(null);
+  const vectorSourceRef = useRef<VectorSource>(new VectorSource());
   const [praias, setPraias] = useState<Praia[]>([]);
-  const [mapboxToken, setMapboxToken] = useState<string>('');
-  const [showTokenInput, setShowTokenInput] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState<{
     lng: number;
     lat: number;
@@ -32,11 +36,10 @@ export const MapView = () => {
     observacoes: '',
   });
   const { toast } = useToast();
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const tempMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
   useEffect(() => {
     loadPraias();
+    initializeMap();
   }, []);
 
   const loadPraias = async () => {
@@ -49,96 +52,116 @@ export const MapView = () => {
   };
 
   const initializeMap = () => {
-    if (!mapContainer.current || !mapboxToken) return;
+    if (!mapContainer.current) return;
 
-    mapboxgl.accessToken = mapboxToken;
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [-38.5267, -3.7319], // Coordenadas de Fortaleza
-      zoom: 10,
+    // Estilos para pontos próprios e impróprios
+    const styles = {
+      propria: new Style({
+        image: new Circle({
+          fill: new Fill({ color: '#10b981' }),
+          stroke: new Stroke({ color: '#059669', width: 2 }),
+          radius: 8
+        })
+      }),
+      impropria: new Style({
+        image: new Circle({
+          fill: new Fill({ color: '#ef4444' }),
+          stroke: new Stroke({ color: '#dc2626', width: 2 }),
+          radius: 8
+        })
+      }),
+      temp: new Style({
+        image: new Circle({
+          fill: new Fill({ color: '#22d3ee' }),
+          stroke: new Stroke({ color: '#0891b2', width: 2 }),
+          radius: 10
+        })
+      })
+    };
+
+    // Layer para os pontos de praia
+    const vectorLayer = new VectorLayer({
+      source: vectorSourceRef.current,
+      style: function(feature) {
+        const status = feature.get('status') as 'propria' | 'impropria';
+        return styles[status] || styles.propria;
+      }
     });
 
-    // Adicionar controles de navegação
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    // Criar o mapa
+    mapRef.current = new Map({
+      target: mapContainer.current,
+      layers: [
+        new TileLayer({
+          source: new OSM()
+        }),
+        vectorLayer
+      ],
+      view: new View({
+        center: fromLonLat([-38.5267, -3.7319]), // Coordenadas de Fortaleza
+        zoom: 10
+      })
+    });
 
     // Evento de clique no mapa
-    map.current.on('click', (e) => {
+    mapRef.current.on('singleclick', (evt) => {
       if (isCreatingPraia) return;
       
-      const { lng, lat } = e.lngLat;
+      const coordinate = evt.coordinate;
+      const [lng, lat] = toLonLat(coordinate);
+      
       setSelectedLocation({ lng, lat });
       setIsCreatingPraia(true);
       
-      // Remover marcador temporário anterior
-      if (tempMarkerRef.current) {
-        tempMarkerRef.current.remove();
-      }
+      // Remover feature temporário anterior
+      const features = vectorSourceRef.current.getFeatures();
+      const tempFeatures = features.filter(f => f.get('isTemp'));
+      tempFeatures.forEach(f => vectorSourceRef.current.removeFeature(f));
       
       // Adicionar marcador temporário
-      tempMarkerRef.current = new mapboxgl.Marker({ color: '#22d3ee' })
-        .setLngLat([lng, lat])
-        .addTo(map.current!);
+      const tempFeature = new Feature({
+        geometry: new Point(coordinate),
+        status: 'temp',
+        isTemp: true
+      });
+      tempFeature.setStyle(styles.temp);
+      vectorSourceRef.current.addFeature(tempFeature);
       
-      // Reverter geocodificação simples para obter nome da localização
-      fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}`)
-        .then(response => response.json())
-        .then(data => {
-          const place = data.features[0];
-          if (place) {
-            setFormData(prev => ({
-              ...prev,
-              localizacao: place.place_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
-            }));
-          }
-        })
-        .catch(() => {
-          setFormData(prev => ({
-            ...prev,
-            localizacao: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
-          }));
-        });
+      // Definir localização simples
+      setFormData(prev => ({
+        ...prev,
+        localizacao: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+      }));
     });
-
-    setShowTokenInput(false);
   };
 
   const addPraiaMarkers = () => {
-    if (!map.current) return;
+    if (!mapRef.current) return;
 
-    // Limpar marcadores existentes
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
+    // Limpar features existentes (exceto temporários)
+    const features = vectorSourceRef.current.getFeatures();
+    const nonTempFeatures = features.filter(f => !f.get('isTemp'));
+    nonTempFeatures.forEach(f => vectorSourceRef.current.removeFeature(f));
 
     // Adicionar marcadores para cada praia
     praias.forEach(praia => {
       if (praia.coordenadas) {
-        const markerColor = praia.status === 'propria' ? '#10b981' : '#ef4444';
+        const coordinate = fromLonLat([praia.coordenadas.longitude, praia.coordenadas.latitude]);
         
-        const marker = new mapboxgl.Marker({ color: markerColor })
-          .setLngLat([praia.coordenadas.longitude, praia.coordenadas.latitude])
-          .setPopup(
-            new mapboxgl.Popup({ offset: 25 }).setHTML(`
-              <div class="p-2">
-                <h3 class="font-semibold">${praia.nome}</h3>
-                <p class="text-sm text-gray-600">${praia.localizacao}</p>
-                <p class="text-sm">
-                  <span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color: ${markerColor}"></span>
-                  ${praia.status === 'propria' ? 'Própria' : 'Imprópria'}
-                </p>
-              </div>
-            `)
-          )
-          .addTo(map.current!);
+        const feature = new Feature({
+          geometry: new Point(coordinate),
+          status: praia.status,
+          praia: praia,
+          isTemp: false
+        });
         
-        markersRef.current.push(marker);
+        vectorSourceRef.current.addFeature(feature);
       }
     });
   };
 
   useEffect(() => {
-    if (map.current && praias.length > 0) {
+    if (mapRef.current && praias.length >= 0) {
       addPraiaMarkers();
     }
   }, [praias]);
@@ -171,10 +194,9 @@ export const MapView = () => {
       setIsCreatingPraia(false);
       
       // Remover marcador temporário
-      if (tempMarkerRef.current) {
-        tempMarkerRef.current.remove();
-        tempMarkerRef.current = null;
-      }
+      const features = vectorSourceRef.current.getFeatures();
+      const tempFeatures = features.filter(f => f.get('isTemp'));
+      tempFeatures.forEach(f => vectorSourceRef.current.removeFeature(f));
 
       toast({
         title: "Praia cadastrada!",
@@ -199,53 +221,12 @@ export const MapView = () => {
       observacoes: '',
     });
     
-    if (tempMarkerRef.current) {
-      tempMarkerRef.current.remove();
-      tempMarkerRef.current = null;
-    }
+    // Remover marcador temporário
+    const features = vectorSourceRef.current.getFeatures();
+    const tempFeatures = features.filter(f => f.get('isTemp'));
+    tempFeatures.forEach(f => vectorSourceRef.current.removeFeature(f));
   };
 
-  if (showTokenInput) {
-    return (
-      <div className="flex items-center justify-center min-h-[500px]">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center mb-6">
-              <MapPin className="h-12 w-12 text-primary mx-auto mb-2" />
-              <h2 className="text-xl font-semibold">Configure o Mapbox</h2>
-              <p className="text-sm text-muted-foreground mt-2">
-                Para usar o mapa, você precisa de um token público do Mapbox.
-                <br />
-                <a 
-                  href="https://mapbox.com/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  Obtenha seu token aqui
-                </a>
-              </p>
-            </div>
-            <div className="space-y-4">
-              <Input
-                type="password"
-                placeholder="Cole seu token público do Mapbox"
-                value={mapboxToken}
-                onChange={(e) => setMapboxToken(e.target.value)}
-              />
-              <Button 
-                onClick={initializeMap}
-                disabled={!mapboxToken.trim()}
-                className="w-full"
-              >
-                Inicializar Mapa
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
