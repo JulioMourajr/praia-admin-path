@@ -31,15 +31,15 @@ export const AdminHome = () => {
 
   // Contagem de praias próprias e impróprias
   const totalPraias = praias.length;
-  const praiasPropriaCount = praias.filter(praia => {
+  const praiasproprioCount = praias.filter(praia => {
     const status = praia.status.toLowerCase();
-    return status.startsWith('propr') || status === 'proprio' || status === 'propria';
+    return status.startsWith('propr') || status === 'proprio' || status === 'proprio';
   }).length;
-  const praiasImpropriaCount = totalPraias - praiasPropriaCount;
+  const praiasImproprioCount = totalPraias - praiasproprioCount;
   
   // Calcular percentuais
-  const percentualProprias = totalPraias > 0 ? Math.round((praiasPropriaCount / totalPraias) * 100) : 0;
-  const percentualImproprias = totalPraias > 0 ? Math.round((praiasImpropriaCount / totalPraias) * 100) : 0;
+  const percentualproprios = totalPraias > 0 ? Math.round((praiasproprioCount / totalPraias) * 100) : 0;
+  const percentualImproprios = totalPraias > 0 ? Math.round((praiasImproprioCount / totalPraias) * 100) : 0;
 
   return (
     <div className="space-y-8">
@@ -86,8 +86,8 @@ export const AdminHome = () => {
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold" style={{ color: '#4CAF50' }}>{praiasPropriaCount}</div>
-                <p className="text-xs text-muted-foreground">{percentualProprias}% do total</p>
+                <div className="text-2xl font-bold" style={{ color: '#4CAF50' }}>{praiasproprioCount}</div>
+                <p className="text-xs text-muted-foreground">{percentualproprios}% do total</p>
               </>
             )}
           </CardContent>
@@ -106,8 +106,8 @@ export const AdminHome = () => {
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold" style={{ color: '#f44336' }}>{praiasImpropriaCount}</div>
-                <p className="text-xs text-muted-foreground">{percentualImproprias}% do total</p>
+                <div className="text-2xl font-bold" style={{ color: '#f44336' }}>{praiasImproprioCount}</div>
+                <p className="text-xs text-muted-foreground">{percentualImproprios}% do total</p>
               </>
             )}
           </CardContent>
@@ -168,18 +168,18 @@ export const AdminHome = () => {
           ) : (
             <div className="space-y-4">
               {praias.slice(0, 5).map((praia, i) => {
-                const isPropria = praia.status.toLowerCase().includes('propr');
+                const isproprio = praia.status.toLowerCase().includes('propr');
                 return (
                   <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                     <div className="flex items-center gap-2">
                       <div 
                         className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: isPropria ? '#4CAF50' : '#f44336' }}
+                        style={{ backgroundColor: isproprio ? '#4CAF50' : '#f44336' }}
                       ></div>
                       <div>
                         <p className="font-medium">{praia.nome}</p>
                         <p className="text-sm text-muted-foreground">
-                          {isPropria ? 'Própria' : 'Imprópria'} para banho
+                          {isproprio ? 'Própria' : 'Imprópria'} para banho
                         </p>
                       </div>
                     </div>

@@ -32,7 +32,7 @@ export const MapView = () => {
   const [formData, setFormData] = useState({
     nome: '',
     localizacao: '',
-    status: 'propria' as const,
+    status: 'proprio' as const,
     observacoes: '',
   });
   const { toast } = useToast();
@@ -56,14 +56,14 @@ export const MapView = () => {
 
     // Estilos para pontos próprios e impróprios
     const styles = {
-      propria: new Style({
+      proprio: new Style({
         image: new Circle({
           fill: new Fill({ color: '#4CAF50' }), // Verde do Material Design
           stroke: new Stroke({ color: '#388E3C', width: 2 }), // Verde mais escuro para a borda
           radius: 8
         })
       }),
-      impropria: new Style({
+      improprio: new Style({
         image: new Circle({
           fill: new Fill({ color: '#f44336' }), // Vermelho do Material Design
           stroke: new Stroke({ color: '#d32f2f', width: 2 }), // Vermelho mais escuro para a borda
@@ -84,15 +84,15 @@ export const MapView = () => {
       source: vectorSourceRef.current,
       style: function(feature) {
         const status = feature.get('status');
-        // Normaliza o status para lidar com as diferentes variações (proprio, propria, improprio, impropria, imroprio)
+        // Normaliza o status para lidar com as diferentes variações (proprio, proprio, improprio, improprio, imroprio)
         if (typeof status === 'string') {
           // Versão simplificada que apenas verifica se contém "propr" no início
           const statusLowerCase = status.toLowerCase();
-          if (statusLowerCase.startsWith('propr') || statusLowerCase === 'proprio' || statusLowerCase === 'propria') {
-            return styles.propria;
+          if (statusLowerCase.startsWith('propr') || statusLowerCase === 'proprio' || statusLowerCase === 'proprio') {
+            return styles.proprio;
           } else if (statusLowerCase.startsWith('impr') || statusLowerCase.startsWith('imr') || 
-                    statusLowerCase === 'improprio' || statusLowerCase === 'impropria') {
-            return styles.impropria;
+                    statusLowerCase === 'improprio' || statusLowerCase === 'improprio') {
+            return styles.improprio;
           }
         }
         return styles.temp;
@@ -238,7 +238,7 @@ export const MapView = () => {
       setFormData({
         nome: '',
         localizacao: '',
-        status: 'propria',
+        status: 'proprio',
         observacoes: '',
       });
       setSelectedLocation(null);
@@ -268,7 +268,7 @@ export const MapView = () => {
     setFormData({
       nome: '',
       localizacao: '',
-      status: 'propria',
+      status: 'proprio',
       observacoes: '',
     });
     
@@ -360,8 +360,8 @@ export const MapView = () => {
                       onChange={(e) => setFormData({...formData, status: e.target.value as any})}
                       className="w-full p-2 border border-border rounded-md bg-background"
                     >
-                      <option value="propria">Própria</option>
-                      <option value="impropria">Imprópria</option>
+                      <option value="proprio">Própria</option>
+                      <option value="improprio">Imprópria</option>
                     </select>
                   </div>
                   
