@@ -1,6 +1,20 @@
 import { Praia } from '@/types/praia';
 
-const API_BASE_URL = '/api/praias';
+// Função para detectar a URL da API baseada no ambiente
+function getApiUrl() {
+  const hostname = window.location.hostname;
+  
+  if (hostname.includes('amazonaws') || hostname.includes('elb') || 
+      (!hostname.includes('localhost') && !hostname.includes('127.0.0.1'))) {
+    console.log('🚀 Modo produção: usando AWS');
+    return 'http://balneabilidade-alb-1128086229.us-east-1.elb.amazonaws.com/api/praias';
+  } else {
+    console.log('🔧 Modo desenvolvimento: usando localhost');
+    return 'http://localhost:8080/api/praias';
+  }
+}
+
+const API_BASE_URL = getApiUrl();
 
 export class PraiaService {
   static async listarPraias(): Promise<Praia[]> {

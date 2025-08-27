@@ -4,7 +4,7 @@ export interface Praia {
   localizacao: string;
   status: 'propria' | 'impropria';
   ultimaAtualizacao: string;
-  coordenadas?: {
+  coordenadas: number[] | { // Aceita tanto formato de array quanto objeto
     latitude: number;
     longitude: number;
   };

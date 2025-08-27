@@ -58,15 +58,15 @@ export const MapView = () => {
     const styles = {
       propria: new Style({
         image: new Circle({
-          fill: new Fill({ color: '#10b981' }),
-          stroke: new Stroke({ color: '#059669', width: 2 }),
+          fill: new Fill({ color: '#4CAF50' }), // Verde do Material Design
+          stroke: new Stroke({ color: '#388E3C', width: 2 }), // Verde mais escuro para a borda
           radius: 8
         })
       }),
       impropria: new Style({
         image: new Circle({
-          fill: new Fill({ color: '#ef4444' }),
-          stroke: new Stroke({ color: '#dc2626', width: 2 }),
+          fill: new Fill({ color: '#f44336' }), // Vermelho do Material Design
+          stroke: new Stroke({ color: '#d32f2f', width: 2 }), // Vermelho mais escuro para a borda
           radius: 8
         })
       }),
@@ -83,8 +83,19 @@ export const MapView = () => {
     const vectorLayer = new VectorLayer({
       source: vectorSourceRef.current,
       style: function(feature) {
-        const status = feature.get('status') as 'propria' | 'impropria';
-        return styles[status] || styles.propria;
+        const status = feature.get('status');
+        // Normaliza o status para lidar com as diferentes variações (proprio, propria, improprio, impropria, imroprio)
+        if (typeof status === 'string') {
+          // Versão simplificada que apenas verifica se contém "propr" no início
+          const statusLowerCase = status.toLowerCase();
+          if (statusLowerCase.startsWith('propr') || statusLowerCase === 'proprio' || statusLowerCase === 'propria') {
+            return styles.propria;
+          } else if (statusLowerCase.startsWith('impr') || statusLowerCase.startsWith('imr') || 
+                    statusLowerCase === 'improprio' || statusLowerCase === 'impropria') {
+            return styles.impropria;
+          }
+        }
+        return styles.temp;
       }
     });
 
@@ -98,12 +109,47 @@ export const MapView = () => {
         vectorLayer
       ],
       view: new View({
-        center: fromLonLat([-38.5267, -3.7319]), // Coordenadas de Fortaleza
-        zoom: 10
+        center: fromLonLat([-35.7350, -9.6659]), // Coordenadas de Maceió
+        zoom: 12
       })
     });
 
-    // Evento de clique no mapa
+    // Adicionar evento para mostrar informações ao clicar nos marcadores
+    mapRef.current.on('click', function(evt) {
+      const feature = mapRef.current?.forEachFeatureAtPixel(evt.pixel, function(feature) {
+        return feature;
+      });
+      
+      if (feature && !feature.get('isTemp') && feature.get('nome')) {
+        const nome = feature.get('nome');
+        const status = feature.get('status');
+        
+        // Normaliza o status para exibição
+        let statusText = "PRÓPRIA";
+        let variant = "success";
+        
+        if (typeof status === 'string') {
+          const statusLowerCase = status.toLowerCase();
+          if (statusLowerCase.includes('impr') || statusLowerCase.includes('imr')) {
+            statusText = "IMPRÓPRIA";
+            variant = "destructive";
+          }
+        }
+        
+        toast({
+          title: nome,
+          description: `Status: ${statusText} para banho`,
+          variant: variant as any,
+          style: {
+            backgroundColor: statusText === "PRÓPRIA" ? '#e8f5e9' : '#ffebee',
+            borderColor: statusText === "PRÓPRIA" ? '#4CAF50' : '#f44336',
+            color: statusText === "PRÓPRIA" ? '#2e7d32' : '#c62828',
+          }
+        });
+      }
+    });
+
+    // Evento de clique no mapa para criar nova praia
     mapRef.current.on('singleclick', (evt) => {
       if (isCreatingPraia) return;
       
@@ -146,11 +192,19 @@ export const MapView = () => {
     // Adicionar marcadores para cada praia
     praias.forEach(praia => {
       if (praia.coordenadas) {
-        const coordinate = fromLonLat([praia.coordenadas.longitude, praia.coordenadas.latitude]);
+        let coordinate;
+        if (Array.isArray(praia.coordenadas)) {
+          // Se for array [longitude, latitude]
+          coordinate = fromLonLat([praia.coordenadas[0], praia.coordenadas[1]]);
+        } else {
+          // Se for objeto {latitude, longitude}
+          coordinate = fromLonLat([praia.coordenadas.longitude, praia.coordenadas.latitude]);
+        }
         
         const feature = new Feature({
           geometry: new Point(coordinate),
-          status: praia.status,
+          status: praia.status, // Usamos o status original da API
+          nome: praia.nome,
           praia: praia,
           isTemp: false
         });
@@ -173,10 +227,7 @@ export const MapView = () => {
     try {
       const newPraia = {
         ...formData,
-        coordenadas: {
-          latitude: selectedLocation.lat,
-          longitude: selectedLocation.lng,
-        },
+        coordenadas: [selectedLocation.lng, selectedLocation.lat], // Envia como array [longitude, latitude]
         ultimaAtualizacao: new Date().toISOString(),
       };
 
@@ -240,9 +291,9 @@ export const MapView = () => {
           </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm">
-            <div className="w-3 h-3 bg-success rounded-full"></div>
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#4CAF50' }}></div>
             <span>Própria</span>
-            <div className="w-3 h-3 bg-destructive rounded-full"></div>
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f44336' }}></div>
             <span>Imprópria</span>
           </div>
           <Badge variant="outline">
@@ -287,7 +338,7 @@ export const MapView = () => {
                     <Input
                       value={formData.nome}
                       onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                      placeholder="Ex: Praia de Iracema"
+                      placeholder="Ex: Praia de Jatiúca"
                       required
                     />
                   </div>
