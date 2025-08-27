@@ -1,73 +1,208 @@
-# Welcome to your Lovable project
+# Sistema de Balneabilidade das Praias de Alagoas 🏖️
 
-## Project info
+Sistema completo para cadastro e monitoramento da balneabilidade das praias do estado de Alagoas, composto por dashboard administrativo, API REST e site público.
 
-**URL**: https://lovable.dev/projects/ec3e6ae6-c85e-4c28-a3e2-93e68c7341b3
+## 📋 Visão Geral
 
-## How can I edit this code?
+O sistema é composto por três aplicações principais:
 
-There are several ways of editing your application.
+- **🔧 Dashboard Admin**: Interface para cadastro e gerenciamento dos pontos de balneabilidade
+- **🚀 API REST**: Backend em Spring Boot para gerenciamento dos dados
+- **🌐 Site Público**: Interface pública em React para visualização dos dados
 
-**Use Lovable**
+## 🏗️ Arquitetura
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ec3e6ae6-c85e-4c28-a3e2-93e68c7341b3) and start prompting.
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  Dashboard      │    │   API REST      │    │  Site Público   │
+│  Admin          │◄──►│  Spring Boot    │◄──►│  React          │
+│  (OpenLayers)   │    │  (Java)         │    │  (Geolocalização)│
+│  Porta: 5000    │    │  Porta: 8080    │    │  Porta: 5173    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+## 📦 Repositórios
 
-Changes made via Lovable will be committed automatically to this repo.
+- **API REST**:  
+  [https://github.com/JulioMourajr/BalneabilidadeAPI](https://github.com/JulioMourajr/BalneabilidadeAPI)
 
-**Use your preferred IDE**
+- **Frontend Público (Site)**:  
+  [https://github.com/JulioMourajr/BalneabilidadePraiasMaceio](https://github.com/JulioMourajr/BalneabilidadePraiasMaceio)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Infraestrutura (Terraform/EKS)**:  
+  [https://gitlab.com/JulioMourajr/projetoTerraformEKS](https://gitlab.com/JulioMourajr/projetoTerraformEKS)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 Funcionalidades
 
-Follow these steps:
+### Dashboard Admin
+- 📍 Cadastro de pontos de balneabilidade via mapa interativo
+- 🎯 Classificação como "Própria" ou "Imprópria" para banho
+- 🗺️ Interface com OpenLayers para visualização geográfica
+- 🔄 Sincronização automática com a API
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### API REST
+- 🛠️ CRUD completo de pontos de balneabilidade
+- 📊 Endpoints RESTful padronizados
+- 🗄️ Persistência de dados
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Site Público
+- 🌍 Visualização de todos os pontos cadastrados
+- 📱 Geolocalização do usuário
+- 🎨 Interface responsiva
+- 🔍 Identificação visual por cores (Verde: Própria | Vermelho: Imprópria)
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 🛠️ Tecnologias Utilizadas
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+| Componente | Tecnologias |
+|------------|-------------|
+| **Frontend Admin** | JavaScript, OpenLayers, Vite |
+| **API** | Java, Spring Boot, Maven |
+| **Frontend Público** | React, JavaScript, OpenLayers |
+| **Containerização** | Docker, Docker Compose |
+| **Mapeamento** | OpenStreetMap (OSM) |
+
+## 📦 Como Executar com Docker
+
+### Pré-requisitos
+- Docker 20.10+
+- Docker Compose 2.0+
+
+### 1. Clone o repositório
+```bash
+git clone  https://github.com/JulioMourajr/BalneabilidadePraiasMaceio
+
+cd balneabilidade-alagoas
 ```
 
-**Edit a file directly in GitHub**
+### 2. Execute com Docker Compose
+```bash
+docker-compose up -d
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 3. Acesse as aplicações
+- **Dashboard Admin**: http://localhost:5000/admin
+- **API REST**: http://localhost:8080/api/praias
+- **Site Público**: http://localhost:5173
 
-**Use GitHub Codespaces**
+## 🔧 Executar em Desenvolvimento
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Dashboard Admin
+```bash
+cd balneabilidadeCadastrov2
+npm install
+npm start
+```
 
-## What technologies are used for this project?
+### API Spring Boot
+```bash
+cd BalneabilidadeAPI
+./mvnw spring-boot:run
+```
 
-This project is built with:
+### Site Público
+```bash
+cd balneabilidade-react-app
+npm install
+npm start
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🐳 Docker Compose
 
-## How can I deploy this project?
+O arquivo docker-compose.yml orquestra os três serviços:
 
-Simply open [Lovable](https://lovable.dev/projects/ec3e6ae6-c85e-4c28-a3e2-93e68c7341b3) and click on Share -> Publish.
+```yaml
+version: '3.8'
 
-## Can I connect a custom domain to my Lovable project?
+services:
+  balneabilidade-api:
+    image: juliomourajr92/balneabilidadeapiv1:latest
+    ports:
+      - "8080:8080"
+    
+  balneabilidade-cadastro:
+    image: juliomourajr92/balneabilidadeadmin:latest
+    ports:
+      - "5000:5000"
+    depends_on:
+      - balneabilidade-api
+    
+  balneabilidade-site:
+    image: juliomourajr92/balneabilidadesite:latest
+    ports:
+      - "5173:5173"
+    depends_on:
+      - balneabilidade-api
+```
 
-Yes, you can!
+## 📡 Endpoints da API
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/praias` | Lista todas as praias |
+| `POST` | `/api/praias` | Cadastra nova praia |
+| `GET` | `/api/praias/{id}` | Busca praia por ID |
+| `PUT` | `/api/praias/{id}` | Atualiza praia |
+| `DELETE` | `/api/praias/{id}` | Remove praia |
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Formato de Dados
+```json
+{
+  "nome": "Praia de Jatiúca",
+  "status": "proprio",
+  "coordenadas": [-35.69314, -9.64253]
+}
+```
+
+## 🎯 Como Usar
+
+### 1. Cadastrar Pontos (Dashboard Admin)
+1. Acesse o dashboard em http://localhost:5000
+2. Clique no mapa na localização desejada
+3. Digite o nome da praia
+4. Selecione se é "Própria" ou "Imprópria" para banho
+5. O ponto será salvo automaticamente na API
+
+### 2. Visualizar Pontos (Site Público)
+1. Acesse o site em http://localhost:5173
+2. Ative a geolocalização se desejado
+3. Visualize os pontos coloridos no mapa:
+   - 🟢 Verde: Própria para banho
+   - 🔴 Vermelho: Imprópria para banho
+
+## 📋 Comandos Úteis
+
+```bash
+# Ver logs dos containers
+docker-compose logs -f
+
+# Parar todos os serviços
+docker-compose down
+
+# Rebuild e restart
+docker-compose up --build -d
+
+# Verificar status
+docker-compose ps
+
+# Limpar volumes (CUIDADO: apaga dados)
+docker-compose down -v
+```
+
+## 🌊 Sobre o Projeto
+
+Este sistema foi desenvolvido na matéria de praticas extensionistas 2 da Uninter para auxiliar no monitoramento da qualidade das águas das praias de Alagoas, fornecendo informações atualizadas sobre a balneabilidade para a população e órgãos competentes.
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+---
+
+**Desenvolvido com ❤️ para o Estado de Alagoas**
